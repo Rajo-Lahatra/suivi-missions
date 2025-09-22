@@ -64,3 +64,20 @@ export interface Payment {
   paid_at: string
   created_at: string
 }
+// --- collaborateur
+export type CollaboratorGrade =
+  | 'Partner'
+  | 'Senior Manager'
+  | 'Manager'
+  | 'Senior'
+  | 'Junior'
+  | 'Stagiaire';
+
+export interface Collaborator {
+  id: string
+  first_name: string
+  last_name: string
+  grade: CollaboratorGrade
+  created_at: string
+  updated_at: string
+}

@@ -22,26 +22,21 @@ export type MissionStage =
   | 'revue_associes'
   | 'livrable_envoye';
 
-// 2. Collaborateurs
-export type CollaboratorGrade =
-  | 'Partner'
-  | 'Senior Manager'
-  | 'Manager'
-  | 'Senior'
-  | 'Junior'
-  | 'Stagiaire';
+// src/types.ts
 
-export interface Collaborator {
-  id: string;
-  first_name: string;
-  last_name: string;
-  grade: CollaboratorGrade;
-  email: string;
-  created_at: string;
-  updated_at: string;
-}
+export type ServiceLine = 'TLS' | 'GCS' | 'LT' | 'Advisory';
 
-// 3. Missions enrichies
+export type MissionStatus = 'pending' | 'in_progress' | 'done' | 'archived';
+
+export type MissionStage =
+  | 'opportunite'
+  | 'lettre_envoyee'
+  | 'lettre_signee'
+  | 'staff_traitement'
+  | 'revue_manager'
+  | 'revue_associes'
+  | 'livrable_envoye';
+
 export interface Mission {
   id: string;
   title: string;
@@ -54,17 +49,8 @@ export interface Mission {
   honoraires: number;
   status: MissionStatus;
   due_date: string | null;
-  partner_id: string | null;
   created_at: string;
   updated_at: string;
-
-  // embed 1-to-1 via partner_id
-  partner?: Collaborator;
-
-  // embed many-to-many via mission_collaborators table
-  mission_collaborators?: Array<{
-    collaborator: Collaborator;
-  }>;
 }
 
 // 4. Factures & paiements

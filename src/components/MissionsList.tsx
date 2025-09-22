@@ -23,26 +23,12 @@ export function MissionsList() {
   const fetchMissions = async () => {
     setLoading(true)
 
-    const { data, error } = await supabase
-      .from('missions')
-      .select(`
-        *,
-        partner:collaborators!missions_partner_fkey(
-          first_name,
-          last_name,
-          grade,
-          email
-        ),
-        mission_collaborators!inner(
-          collaborator:collaborators!mission_collaborators_collaborator_id_fkey(
-            first_name,
-            last_name,
-            grade,
-            email
-          )
-        )
-      `)
-      .order('created_at', { ascending: false })
+// src/components/MissionsList.tsx (extrait de fetchMissions)
+const { data, error } = await supabase
+  .from('missions')
+  .select('*')               // plus de jointure collaborators
+  .order('created_at', { ascending: false });
+
 
     if (error) setError(error.message)
     else       setMissions(data as Mission[])

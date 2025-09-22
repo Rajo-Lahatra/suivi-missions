@@ -21,12 +21,19 @@ export function MissionsList() {
   const [error, setError]                = useState<string | null>(null)
   const [expandedMissionId, setExpanded] = useState<string | null>(null)
 
-  // 1. Récupération avec jointure profils
+  // 1. Récupération avec jointure explicite sur profiles
   const fetchMissions = async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('missions')
-      .select('*, profile:profiles(first_name,last_name,grade)')
+      .select(`
+        *,
+        profile:profiles!user_id(
+          first_name,
+          last_name,
+          grade
+        )
+      `)
       .order('created_at', { ascending: false })
 
     if (error) setError(error.message)
@@ -38,7 +45,7 @@ export function MissionsList() {
     fetchMissions()
   }, [])
 
-  // 2. Dupliquer une mission
+  // 2. Dupliquer
   const handleDuplicate = async (id: string) => {
     setLoading(true)
     const { error } = await supabase.rpc('duplicate_mission', { p_id: id })
@@ -46,7 +53,7 @@ export function MissionsList() {
     await fetchMissions()
   }
 
-  // 3. Supprimer une mission
+  // 3. Supprimer
   const handleDelete = async (id: string) => {
     setLoading(true)
     const { error } = await supabase.from('missions').delete().eq('id', id)
@@ -54,7 +61,7 @@ export function MissionsList() {
     await fetchMissions()
   }
 
-  // 4. Changer l’étape métier
+  // 4. Changer d’étape
   const handleStageChange = async (id: string, stage: MissionStage) => {
     setLoading(true)
     const { error } = await supabase
@@ -124,9 +131,7 @@ export function MissionsList() {
                   Supprimer
                 </button>
                 <button
-                  onClick={() =>
-                    setExpanded(isOpen ? null : m.id)
-                  }
+                  onClick={() => setExpanded(isOpen ? null : m.id)}
                 >
                   {isOpen ? 'Cacher détails' : 'Voir détails'}
                 </button>

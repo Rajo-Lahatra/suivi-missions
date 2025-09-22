@@ -1,29 +1,57 @@
 // src/types.ts
 
-// Représente une mission
+// 1. Lignes de service du cabinet
+export type ServiceLine =
+  | 'TLS'
+  | 'GCS'
+  | 'LT'
+  | 'Advisory'
+
+// 2. Statuts génériques d’une mission
+export type MissionStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'done'
+  | 'archived'
+
+// 3. Étapes métier d’une mission
+export type MissionStage =
+  | 'opportunite'
+  | 'lettre_envoyee'
+  | 'lettre_signee'
+  | 'staff_traitement'
+  | 'revue_manager'
+  | 'revue_associes'
+  | 'livrable_envoye'
+
+// 4. Interface Mission enrichie
 export interface Mission {
   id: string
   title: string
   description: string | null
-  status: 'pending' | 'in_progress' | 'done' | 'archived'
+  service: ServiceLine
+  stage: MissionStage
+  situation: string
+  honoraires: number
+  status: MissionStatus
   due_date: string | null
   user_id: string
   created_at: string
   updated_at: string
 }
 
-// Etat possible d’une facture
+// 5. Statuts possibles d’une facture
 export type InvoiceStatus =
   | 'envoyee'
   | 'partiellement_recouvree'
   | 'recouvree'
 
-// Représente une facture liée à une mission
+// 6. Interface Invoice
 export interface Invoice {
-  id: string           // Identifiant de la facture
-  mission_id: string   // Clé étrangère vers la mission
-  amount: number       // Montant facturé
-  issued_at: string    // Date d’émission (YYYY-MM-DD)
+  id: string
+  mission_id: string
+  amount: number
+  issued_at: string
   status: InvoiceStatus
-  created_at: string   // Timestamp de création
+  created_at: string
 }

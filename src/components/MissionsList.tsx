@@ -1,88 +1,114 @@
 // src/components/MissionsList.tsx
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import type { Mission, MissionStage } from '../types';
-import { InvoicesList } from './InvoicesList';
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import type { Mission, MissionStage } from '../types'
+import { InvoicesList } from './InvoicesList'
 
 // Labels pour les étapes métier
 const stageOptions: { label: string; value: MissionStage }[] = [
-  { label: 'Opportunité',        value: 'opportunite'     },
-  { label: 'Lettre envoyée',     value: 'lettre_envoyee'  },
-  { label: 'Lettre signée',      value: 'lettre_signee'   },
-  { label: 'Staff traitement',   value: 'staff_traitement'},
-  { label: 'Revue manager',      value: 'revue_manager'   },
-  { label: 'Revue associés',     value: 'revue_associes'  },
-  { label: 'Livrable envoyé',    value: 'livrable_envoye' }
-];
+  { label: 'Opportunité',      value: 'opportunite'     },
+  { label: 'Lettre envoyée',   value: 'lettre_envoyee'  },
+  { label: 'Lettre signée',    value: 'lettre_signee'   },
+  { label: 'Staff traitement', value: 'staff_traitement'},
+  { label: 'Revue manager',    value: 'revue_manager'   },
+  { label: 'Revue associés',   value: 'revue_associes'  },
+  { label: 'Livrable envoyé',  value: 'livrable_envoye' }
+]
 
 export function MissionsList() {
-  const [missions, setMissions]           = useState<Mission[]>([]);
-  const [loading, setLoading]            = useState<boolean>(true);
-  const [error, setError]                = useState<string|null>(null);
-  const [expandedMissionId, setExpanded] = useState<string|null>(null);
+  const [missions, setMissions]           = useState<Mission[]>([])
+  const [loading, setLoading]            = useState<boolean>(true)
+  const [error, setError]                = useState<string | null>(null)
+  const [expandedMissionId, setExpanded] = useState<string | null>(null)
 
-  // Récupération
+  // 1. Récupération avec jointure profils
   const fetchMissions = async () => {
-    setLoading(true);
+    setLoading(true)
     const { data, error } = await supabase
       .from('missions')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*, profile:profiles(first_name,last_name,grade)')
+      .order('created_at', { ascending: false })
 
-    if (error) setError(error.message);
-    else       setMissions(data as Mission[]);
-    setLoading(false);
-  };
+    if (error) setError(error.message)
+    else       setMissions(data as Mission[])
+    setLoading(false)
+  }
 
   useEffect(() => {
-    fetchMissions();
-  }, []);
+    fetchMissions()
+  }, [])
 
-  // Dupliquer
+  // 2. Dupliquer une mission
   const handleDuplicate = async (id: string) => {
-    setLoading(true);
-    const { error } = await supabase.rpc('duplicate_mission', { p_id: id });
-    if (error) setError(error.message);
-    await fetchMissions();
-  };
+    setLoading(true)
+    const { error } = await supabase.rpc('duplicate_mission', { p_id: id })
+    if (error) setError(error.message)
+    await fetchMissions()
+  }
 
-  // Supprimer
+  // 3. Supprimer une mission
   const handleDelete = async (id: string) => {
-    setLoading(true);
-    const { error } = await supabase.from('missions').delete().eq('id', id);
-    if (error) setError(error.message);
-    await fetchMissions();
-  };
+    setLoading(true)
+    const { error } = await supabase.from('missions').delete().eq('id', id)
+    if (error) setError(error.message)
+    await fetchMissions()
+  }
 
-  // Changer d’étape
+  // 4. Changer l’étape métier
   const handleStageChange = async (id: string, stage: MissionStage) => {
-    setLoading(true);
-    const { error } = await supabase.from('missions').update({ stage }).eq('id', id);
-    if (error) setError(error.message);
-    await fetchMissions();
-  };
+    setLoading(true)
+    const { error } = await supabase
+      .from('missions')
+      .update({ stage })
+      .eq('id', id)
+    if (error) setError(error.message)
+    await fetchMissions()
+  }
 
-  if (loading) return <p>Chargement…</p>;
-  if (error)   return <p style={{ color: 'red' }}>Erreur : {error}</p>;
+  if (loading) return <p>Chargement…</p>
+  if (error)   return <p style={{ color: 'red' }}>Erreur : {error}</p>
 
   return (
     <ul style={{ listStyle: 'none', padding: 0 }}>
       {missions.map((m) => {
-        const isOpen = expandedMissionId === m.id;
+        const isOpen = expandedMissionId === m.id
 
         return (
-          <li key={m.id} style={{ marginBottom: 24, borderBottom: '1px solid #ddd', paddingBottom: 16 }}>
+          <li
+            key={m.id}
+            style={{
+              marginBottom: 24,
+              borderBottom: '1px solid #ddd',
+              paddingBottom: 16
+            }}
+          >
             {/* Ligne principale */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
               <div>
-                <h3 style={{ margin: '0 0 4px' }}>{m.title}</h3>
-                <small>Sit. : {m.situation} – Honoraires : {m.honoraires.toFixed(2)} €</small>
+                <h3 style={{ margin: '0 0 4px' }}>
+                  {m.title}{' '}
+                  <small style={{ color: '#666' }}>
+                    — {m.profile?.first_name} {m.profile?.last_name} (
+                    {m.profile?.grade})
+                  </small>
+                </h3>
+                <small>
+                  Sit. : {m.situation} – Honoraires : {m.honoraires.toFixed(2)} €
+                </small>
               </div>
 
               <div style={{ display: 'flex', gap: 8 }}>
                 <select
                   value={m.stage}
-                  onChange={(e) => handleStageChange(m.id, e.target.value as MissionStage)}
+                  onChange={(e) =>
+                    handleStageChange(m.id, e.target.value as MissionStage)
+                  }
                 >
                   {stageOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -91,9 +117,17 @@ export function MissionsList() {
                   ))}
                 </select>
 
-                <button onClick={() => handleDuplicate(m.id)}>Dupliquer</button>
-                <button onClick={() => handleDelete(m.id)}>Supprimer</button>
-                <button onClick={() => setExpanded(isOpen ? null : m.id)}>
+                <button onClick={() => handleDuplicate(m.id)}>
+                  Dupliquer
+                </button>
+                <button onClick={() => handleDelete(m.id)}>
+                  Supprimer
+                </button>
+                <button
+                  onClick={() =>
+                    setExpanded(isOpen ? null : m.id)
+                  }
+                >
                   {isOpen ? 'Cacher détails' : 'Voir détails'}
                 </button>
               </div>
@@ -102,16 +136,24 @@ export function MissionsList() {
             {/* Détails déployés */}
             {isOpen && (
               <div style={{ marginTop: 12, paddingLeft: 16 }}>
-                <p><strong>Description :</strong> {m.description || '—'}</p>
-                <p><strong>Échéance :</strong> {m.due_date ? new Date(m.due_date).toLocaleDateString() : '—'}</p>
+                <p>
+                  <strong>Description :</strong>{' '}
+                  {m.description || '—'}
+                </p>
+                <p>
+                  <strong>Échéance :</strong>{' '}
+                  {m.due_date
+                    ? new Date(m.due_date).toLocaleDateString()
+                    : '—'}
+                </p>
 
                 {/* Liste des factures + paiements */}
                 <InvoicesList missionId={m.id} />
               </div>
             )}
           </li>
-        );
+        )
       })}
     </ul>
-  );
+  )
 }

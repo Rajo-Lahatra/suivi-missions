@@ -1,20 +1,39 @@
 // src/types.ts
 
-// Lignes de service du cabinet
+// --- grades possibles pour un collaborateur
+export type CollaboratorGrade =
+  | 'Partner'
+  | 'Senior Manager'
+  | 'Manager'
+  | 'Senior'
+  | 'Junior'
+  | 'Stagiaire'
+
+// --- profil d’un collaborateur (jointure sur profiles)
+export interface Collaborator {
+  id: string
+  first_name: string
+  last_name: string
+  grade: CollaboratorGrade
+  created_at: string
+  updated_at: string
+}
+
+// --- lignes de service pour une mission
 export type ServiceLine =
   | 'TLS'
   | 'GCS'
   | 'LT'
   | 'Advisory'
 
-// Statuts génériques d’une mission
+// --- statut générique d’une mission
 export type MissionStatus =
   | 'pending'
   | 'in_progress'
   | 'done'
   | 'archived'
 
-// Étapes métier d’une mission
+// --- étapes métier d’une mission
 export type MissionStage =
   | 'opportunite'
   | 'lettre_envoyee'
@@ -24,7 +43,7 @@ export type MissionStage =
   | 'revue_associes'
   | 'livrable_envoye'
 
-// Mission enrichie
+// --- mission enrichie
 export interface Mission {
   id: string
   title: string
@@ -38,15 +57,18 @@ export interface Mission {
   user_id: string
   created_at: string
   updated_at: string
+
+  // <- ajoute cette ligne
+  profile?: Collaborator
 }
 
-// Statuts possibles d’une facture
+// --- statut d’une facture
 export type InvoiceStatus =
   | 'envoyee'
   | 'partiellement_recouvree'
   | 'recouvree'
 
-// Facture liée à une mission
+// --- facture
 export interface Invoice {
   id: string
   mission_id: string
@@ -56,28 +78,11 @@ export interface Invoice {
   created_at: string
 }
 
-// Paiement rattaché à une facture
+// --- paiement
 export interface Payment {
   id: string
   invoice_id: string
   paid_amount: number
   paid_at: string
   created_at: string
-}
-// --- collaborateur
-export type CollaboratorGrade =
-  | 'Partner'
-  | 'Senior Manager'
-  | 'Manager'
-  | 'Senior'
-  | 'Junior'
-  | 'Stagiaire';
-
-export interface Collaborator {
-  id: string
-  first_name: string
-  last_name: string
-  grade: CollaboratorGrade
-  created_at: string
-  updated_at: string
 }

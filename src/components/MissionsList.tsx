@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Mission, MissionStage } from '../types';
+import { InvoicesList } from './InvoicesList';
 
-// Libellés pour chaque étape métier
+// Labels pour les étapes métier
 const stageOptions: { label: string; value: MissionStage }[] = [
   { label: 'Opportunité',        value: 'opportunite'     },
   { label: 'Lettre envoyée',     value: 'lettre_envoyee'  },
@@ -15,11 +16,12 @@ const stageOptions: { label: string; value: MissionStage }[] = [
 ];
 
 export function MissionsList() {
-  const [missions, setMissions] = useState<Mission[]>([]);
-  const [loading, setLoading]     = useState<boolean>(true);
-  const [error, setError]         = useState<string | null>(null);
+  const [missions, setMissions]           = useState<Mission[]>([]);
+  const [loading, setLoading]            = useState<boolean>(true);
+  const [error, setError]                = useState<string|null>(null);
+  const [expandedMissionId, setExpanded] = useState<string|null>(null);
 
-  // 1. Récupère les missions
+  // Récupération
   const fetchMissions = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -28,48 +30,36 @@ export function MissionsList() {
       .order('created_at', { ascending: false });
 
     if (error) setError(error.message);
-    else     setMissions(data as Mission[]);
-
+    else       setMissions(data as Mission[]);
     setLoading(false);
   };
 
-  // appel initial
   useEffect(() => {
     fetchMissions();
   }, []);
 
-  // 2. Dupliquer via RPC
+  // Dupliquer
   const handleDuplicate = async (id: string) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .rpc('duplicate_mission', { p_id: id });
-
+    const { error } = await supabase.rpc('duplicate_mission', { p_id: id });
     if (error) setError(error.message);
-    else       await fetchMissions();
+    await fetchMissions();
   };
 
-  // 3. Supprimer
+  // Supprimer
   const handleDelete = async (id: string) => {
     setLoading(true);
-    const { error } = await supabase
-      .from('missions')
-      .delete()
-      .eq('id', id);
-
+    const { error } = await supabase.from('missions').delete().eq('id', id);
     if (error) setError(error.message);
-    else       await fetchMissions();
+    await fetchMissions();
   };
 
-  // 4. Mettre à jour le stage
+  // Changer d’étape
   const handleStageChange = async (id: string, stage: MissionStage) => {
     setLoading(true);
-    const { error } = await supabase
-      .from('missions')
-      .update({ stage })
-      .eq('id', id);
-
+    const { error } = await supabase.from('missions').update({ stage }).eq('id', id);
     if (error) setError(error.message);
-    else       await fetchMissions();
+    await fetchMissions();
   };
 
   if (loading) return <p>Chargement…</p>;
@@ -77,34 +67,51 @@ export function MissionsList() {
 
   return (
     <ul style={{ listStyle: 'none', padding: 0 }}>
-      {missions.map((m) => (
-        <li key={m.id} style={{ marginBottom: 16, borderBottom: '1px solid #ddd', paddingBottom: 8 }}>
-          <h3>{m.title}</h3>
-          <p>{m.situation}</p>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <label>
-              Étape :
-              <select
-                value={m.stage}
-                onChange={(e) => handleStageChange(m.id, e.target.value as MissionStage)}
-                disabled={loading}
-                style={{ marginLeft: 4 }}
-              >
-                {stageOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </label>
+      {missions.map((m) => {
+        const isOpen = expandedMissionId === m.id;
 
-            <button onClick={() => handleDuplicate(m.id)} disabled={loading}>
-              Dupliquer
-            </button>
-            <button onClick={() => handleDelete(m.id)} disabled={loading}>
-              Supprimer
-            </button>
-          </div>
-        </li>
-      ))}
+        return (
+          <li key={m.id} style={{ marginBottom: 24, borderBottom: '1px solid #ddd', paddingBottom: 16 }}>
+            {/* Ligne principale */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: '0 0 4px' }}>{m.title}</h3>
+                <small>Sit. : {m.situation} – Honoraires : {m.honoraires.toFixed(2)} €</small>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <select
+                  value={m.stage}
+                  onChange={(e) => handleStageChange(m.id, e.target.value as MissionStage)}
+                >
+                  {stageOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <button onClick={() => handleDuplicate(m.id)}>Dupliquer</button>
+                <button onClick={() => handleDelete(m.id)}>Supprimer</button>
+                <button onClick={() => setExpanded(isOpen ? null : m.id)}>
+                  {isOpen ? 'Cacher détails' : 'Voir détails'}
+                </button>
+              </div>
+            </div>
+
+            {/* Détails déployés */}
+            {isOpen && (
+              <div style={{ marginTop: 12, paddingLeft: 16 }}>
+                <p><strong>Description :</strong> {m.description || '—'}</p>
+                <p><strong>Échéance :</strong> {m.due_date ? new Date(m.due_date).toLocaleDateString() : '—'}</p>
+
+                {/* Liste des factures + paiements */}
+                <InvoicesList missionId={m.id} />
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

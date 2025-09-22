@@ -5,34 +5,35 @@ import type { Mission } from '../types';
 
 export function MissionsList() {
   const [missions, setMissions] = useState<Mission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. On lance la requête au montage
     supabase
-      .from<Mission>('missions')
-      .select('*')
+      .from('missions')
+      .select('id, title, status, due_date')
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (error) {
           setError(error.message);
-        } else {
-          setMissions(data);
+        } else if (data) {
+          setMissions(data as Mission[]);
         }
         setLoading(false);
       });
   }, []);
 
   if (loading) return <p>Chargement…</p>;
-  if (error) return <p>Erreur : {error}</p>;
+  if (error)   return <p>Erreur : {error}</p>;
 
   return (
     <ul>
       {missions.map((m) => (
         <li key={m.id}>
-          <strong>{m.title}</strong> – {m.status}{' '}
-          {m.due_date && <em>({new Date(m.due_date).toLocaleDateString()})</em>}
+          <strong>{m.title}</strong> – {m.status}
+          {m.due_date && (
+            <em> ({new Date(m.due_date).toLocaleDateString()})</em>
+          )}
         </li>
       ))}
     </ul>

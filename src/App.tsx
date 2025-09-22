@@ -6,6 +6,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: 640, margin: '40px auto', padding: 16, lineHeight: 1.5 }}>
+      <img src="/og-image.png" alt="Logo Suivi Missions" />
       <h1>Suivi des missions</h1>
       <Auth onAuth={setUser} />
       {user ? (

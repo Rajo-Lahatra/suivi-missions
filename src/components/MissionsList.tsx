@@ -20,37 +20,35 @@ export function MissionsList() {
   const [error, setError]                = useState<string | null>(null)
   const [expandedMissionId, setExpanded] = useState<string | null>(null)
 
-  // 1. On spécifie chaque embed avec le nom de la contrainte
-// src/components/MissionsList.tsx
-const fetchMissions = async () => {
-  setLoading(true)
+  const fetchMissions = async () => {
+    setLoading(true)
 
-  const { data, error } = await supabase
-    .from('missions')
-    .select(`
-      *,
-      partner:collaborators!missions_partner_fkey(
-        first_name,
-        last_name,
-        grade,
-        email
-      ),
-      mission_collaborators!mission_collaborators_mission_id_fkey(
-        collaborator:collaborators!mission_collaborators_collaborator_id_fkey(
+    const { data, error } = await supabase
+      .from('missions')
+      .select(`
+        *,
+        partner:collaborators!missions_partner_fkey(
           first_name,
           last_name,
           grade,
           email
+        ),
+        mission_collaborators!inner(
+          collaborator:collaborators!mission_collaborators_collaborator_id_fkey(
+            first_name,
+            last_name,
+            grade,
+            email
+          )
         )
-      )
-    `)
-    .order('created_at', { ascending: false })
+      `)
+      .order('created_at', { ascending: false })
 
-  if (error) setError(error.message)
-  else       setMissions(data as Mission[])
+    if (error) setError(error.message)
+    else       setMissions(data as Mission[])
 
-  setLoading(false)
-}
+    setLoading(false)
+  }
 
   useEffect(() => {
     fetchMissions()
@@ -87,7 +85,6 @@ const fetchMissions = async () => {
     <ul style={{ listStyle: 'none', padding: 0 }}>
       {missions.map((m) => {
         const isOpen = expandedMissionId === m.id
-
         return (
           <li key={m.id} style={{ marginBottom: 24, borderBottom: '1px solid #ddd', paddingBottom: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -102,11 +99,11 @@ const fetchMissions = async () => {
                 </h3>
                 <p>Client : {m.client_name}</p>
                 <p>
-                  Sit. : {m.situation_state}
+                  Situation – État : {m.situation_state}
                   <br/>
                   Actions : {m.situation_actions}
                 </p>
-                <small>Sit. : {m.situation} – Honoraires : {m.honoraires.toFixed(2)} €</small>
+                <small>Honoraires : {m.honoraires.toFixed(2)} €</small>
               </div>
 
               <div style={{ display: 'flex', gap: 8 }}>
@@ -120,7 +117,6 @@ const fetchMissions = async () => {
                     </option>
                   ))}
                 </select>
-
                 <button onClick={() => handleDuplicate(m.id)}>Dupliquer</button>
                 <button onClick={() => handleDelete(m.id)}>Supprimer</button>
                 <button onClick={() => setExpanded(isOpen ? null : m.id)}>
@@ -134,18 +130,18 @@ const fetchMissions = async () => {
                 <p><strong>Description :</strong> {m.description || '—'}</p>
                 <p><strong>Échéance :</strong> {m.due_date ? new Date(m.due_date).toLocaleDateString() : '—'}</p>
 
-                {m.mission_collaborators.length > 0 && (
-                  <div>
+                {m.mission_collaborators?.length ? (
+                  <>
                     <p><strong>Collaborateurs assignés :</strong></p>
-                    <ul style={{ margin: 0, padding: '0 0 0 16px', listStyle: 'disc' }}>
+                    <ul style={{ paddingLeft: 16 }}>
                       {m.mission_collaborators.map((mc) => (
-                        <li key={mc.collaborator.email}>
+                        <li key={mc.collaborator.id}>
                           {mc.collaborator.first_name} {mc.collaborator.last_name} ({mc.collaborator.grade})
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  </>
+                ) : null}
 
                 <InvoicesList missionId={m.id} />
               </div>

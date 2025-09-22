@@ -21,34 +21,36 @@ export function MissionsList() {
   const [expandedMissionId, setExpanded] = useState<string | null>(null)
 
   // 1. On spécifie chaque embed avec le nom de la contrainte
-  const fetchMissions = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('missions')
-      .select(`
-        *,
-        partner:collaborators!missions_partner_fkey(
+// src/components/MissionsList.tsx
+const fetchMissions = async () => {
+  setLoading(true)
+
+  const { data, error } = await supabase
+    .from('missions')
+    .select(`
+      *,
+      partner:collaborators!missions_partner_fkey(
+        first_name,
+        last_name,
+        grade,
+        email
+      ),
+      mission_collaborators!mission_collaborators_mission_id_fkey(
+        collaborator:collaborators!mission_collaborators_collaborator_id_fkey(
           first_name,
           last_name,
           grade,
           email
-        ),
-        mission_collaborators!inner(
-          collaborator:collaborators(
-            first_name,
-            last_name,
-            grade,
-            email
-          )
         )
-      `)
-      .order('created_at', { ascending: false })
+      )
+    `)
+    .order('created_at', { ascending: false })
 
-    if (error) setError(error.message)
-    else       setMissions(data as Mission[])
+  if (error) setError(error.message)
+  else       setMissions(data as Mission[])
 
-    setLoading(false)
-  }
+  setLoading(false)
+}
 
   useEffect(() => {
     fetchMissions()

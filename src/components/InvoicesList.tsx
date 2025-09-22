@@ -2,16 +2,17 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Invoice } from '../types';
+import { PaymentsList } from './PaymentsList';
 
 interface InvoicesListProps {
   missionId: string;
 }
 
 export function InvoicesList({ missionId }: InvoicesListProps) {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading]     = useState<boolean>(true);
-  const [error, setError]         = useState<string | null>(null);
-  const [newAmount, setNewAmount] = useState<number>(0);
+  const [invoices, setInvoices]       = useState<Invoice[]>([]);
+  const [loading, setLoading]         = useState<boolean>(true);
+  const [error, setError]             = useState<string | null>(null);
+  const [newAmount, setNewAmount]     = useState<number>(0);
 
   // 1. Charger les factures
   const fetchInvoices = async () => {
@@ -88,16 +89,19 @@ export function InvoicesList({ missionId }: InvoicesListProps) {
 
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {invoices.map((inv) => (
-          <li key={inv.id} style={{ marginBottom: 8 }}>
-            {inv.amount.toFixed(2)} € – {inv.status} –{' '}
-            {new Date(inv.issued_at).toLocaleDateString()}
-            <button
-              onClick={() => handleDelete(inv.id)}
-              disabled={loading}
-              style={{ marginLeft: 8 }}
-            >
-              Supprimer
-            </button>
+          <li key={inv.id} style={{ marginBottom: 16, borderBottom: '1px solid #eee', paddingBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>
+                {inv.amount.toFixed(2)} € – {inv.status} –{' '}
+                {new Date(inv.issued_at).toLocaleDateString()}
+              </span>
+              <button onClick={() => handleDelete(inv.id)} disabled={loading}>
+                Supprimer
+              </button>
+            </div>
+
+            {/* Intégration des paiements */}
+            <PaymentsList invoiceId={inv.id} />
           </li>
         ))}
       </ul>

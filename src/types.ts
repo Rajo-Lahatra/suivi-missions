@@ -1,20 +1,18 @@
 // src/types.ts
 
-// --- line de services
+// 1. Services & workflow
 export type ServiceLine =
   | 'TLS'
   | 'GCS'
   | 'LT'
-  | 'Advisory'
+  | 'Advisory';
 
-// --- statuts de mission
 export type MissionStatus =
   | 'pending'
   | 'in_progress'
   | 'done'
-  | 'archived'
+  | 'archived';
 
-// --- étapes métier
 export type MissionStage =
   | 'opportunite'
   | 'lettre_envoyee'
@@ -22,66 +20,68 @@ export type MissionStage =
   | 'staff_traitement'
   | 'revue_manager'
   | 'revue_associes'
-  | 'livrable_envoye'
+  | 'livrable_envoye';
 
-// --- collaborateur interne
+// 2. Collaborateurs
 export type CollaboratorGrade =
   | 'Partner'
   | 'Senior Manager'
   | 'Manager'
   | 'Senior'
   | 'Junior'
-  | 'Stagiaire'
+  | 'Stagiaire';
 
 export interface Collaborator {
-  id: string
-  first_name: string
-  last_name: string
-  grade: CollaboratorGrade
-  email: string
-  created_at: string
-  updated_at: string
+  id: string;
+  first_name: string;
+  last_name: string;
+  grade: CollaboratorGrade;
+  email: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// --- mission enrichie
+// 3. Missions enrichies
 export interface Mission {
-  id: string
-  title: string
-  description: string | null
-  service: ServiceLine
-  stage: MissionStage
-  situation: string
-  honoraires: number
-  status: MissionStatus
-  due_date: string | null
-  collaborator_id: string | null
-  created_at: string
-  updated_at: string
+  id: string;
+  title: string;
+  client_name: string;
+  description: string | null;
+  service: ServiceLine;
+  stage: MissionStage;
+  situation_state: string;
+  situation_actions: string;
+  honoraires: number;
+  status: MissionStatus;
+  due_date: string | null;
+  partner_id: string | null;
+  created_at: string;
+  updated_at: string;
 
-  // jointure
-  collaborator?: Collaborator
+  // Jointures
+  partner?: Collaborator;
+  collaborators?: Collaborator[];
 }
 
-// --- facturation
+// 4. Factures & paiements (inchangés)
 export type InvoiceStatus =
   | 'envoyee'
   | 'partiellement_recouvree'
-  | 'recouvree'
+  | 'recouvree';
 
 export interface Invoice {
-  id: string
-  mission_id: string
-  amount: number
-  issued_at: string
-  status: InvoiceStatus
-  created_at: string
+  id: string;
+  mission_id: string;
+  amount: number;
+  issued_at: string;
+  status: InvoiceStatus;
+  created_at: string;
 }
 
-// --- paiements
 export interface Payment {
-  id: string
-  invoice_id: string
-  paid_amount: number
-  paid_at: string
-  created_at: string
+  id: string;
+  invoice_id: string;
+  paid_amount: number;
+  paid_at: string;
+  created_at: string;
 }

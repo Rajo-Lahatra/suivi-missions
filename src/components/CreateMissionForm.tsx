@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import type { Collaborator, MissionStage, ServiceLine } from '../types'
+import { Collaborator, MissionStage, ServiceLine } from '../types'
 
 const serviceOptions: ServiceLine[] = ['TLS','GCS','LT','Advisory']
 const stageOptions = [

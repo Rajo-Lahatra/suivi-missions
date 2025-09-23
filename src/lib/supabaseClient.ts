@@ -6,7 +6,7 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!url || !key) {
   throw new Error(
-    'Missing required env vars VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY'
+    'Missing env vars VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY'
   );
 }
 

@@ -5,7 +5,7 @@ import { Collaborator } from '../types';
 
 export function CollaboratorsList() {
   const [collabs, setCollabs] = useState<Collaborator[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
     supabase
